@@ -1,8 +1,9 @@
 :root {
-  --navy: #16233f;
-  --navy-2: #1f3157;
-  --red: #cf3339;
-  --red-soft: #fbe9ea;
+  /* Louisiana Elite Soccer: purple + orange */
+  --brand: #4c1d95;
+  --brand-2: #5f2ab8;
+  --accent: #ea580c;
+  --accent-soft: #fdeadd;
   --bg: #f4f6fa;
   --card: #ffffff;
   --ink: #1c2434;
@@ -10,7 +11,6 @@
   --line: #e3e8f1;
   --green: #1d7a4d;
   --green-soft: #e5f4ec;
-  --amber-soft: #fdf3e0;
   --radius: 12px;
 }
 
@@ -28,7 +28,7 @@ body {
 }
 
 a {
-  color: var(--red);
+  color: var(--accent);
 }
 
 .container {
@@ -39,7 +39,7 @@ a {
 
 /* ---------- header ---------- */
 .site-header {
-  background: var(--navy);
+  background: var(--brand);
   color: #fff;
   padding: 14px 0;
 }
@@ -64,7 +64,7 @@ a {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--accent);
   font-size: 22px;
 }
 
@@ -75,7 +75,7 @@ a {
 
 .brand-sub {
   font-size: 12.5px;
-  color: #b9c3d8;
+  color: #d5c6f2;
 }
 
 .site-nav {
@@ -84,7 +84,7 @@ a {
 }
 
 .nav-link {
-  color: #d5dcea;
+  color: #e2d8f5;
   text-decoration: none;
   font-weight: 600;
   font-size: 14.5px;
@@ -93,12 +93,12 @@ a {
 }
 
 .nav-link:hover {
-  background: var(--navy-2);
+  background: var(--brand-2);
   color: #fff;
 }
 
 .nav-link.active {
-  background: var(--red);
+  background: var(--accent);
   color: #fff;
 }
 
@@ -139,7 +139,7 @@ h1 {
 }
 
 .error-box {
-  color: var(--red);
+  color: var(--accent);
 }
 
 /* ---------- away trip strip ---------- */
@@ -155,7 +155,7 @@ h1 {
   text-decoration: none;
   color: inherit;
   padding: 14px 16px;
-  border-left: 4px solid var(--red);
+  border-left: 4px solid var(--accent);
   transition: box-shadow 0.15s;
 }
 
@@ -164,7 +164,7 @@ h1 {
 }
 
 .trip-card.selected {
-  outline: 2px solid var(--red);
+  outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
 
@@ -182,7 +182,7 @@ h1 {
 .trip-card-dates {
   font-size: 13px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--brand);
 }
 
 .trip-card-meta {
@@ -202,13 +202,13 @@ h1 {
 }
 
 .badge-away {
-  background: var(--red-soft);
-  color: var(--red);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .badge-tournament {
-  background: var(--amber-soft);
-  color: #9a6a12;
+  background: #f1e8fd;
+  color: #6d28d9;
 }
 
 .badge-booked {
@@ -226,28 +226,7 @@ h1 {
   flex-wrap: wrap;
 }
 
-/* ---------- calendar ---------- */
-.cal-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.cal-month {
-  font-size: 19px;
-  font-weight: 700;
-  min-width: 190px;
-}
-
-.cal-nav-buttons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
+/* ---------- buttons ---------- */
 button {
   font: inherit;
 }
@@ -264,117 +243,61 @@ button {
 }
 
 .btn:hover {
-  border-color: var(--navy);
+  border-color: var(--brand);
 }
 
 .btn-primary {
-  background: var(--red);
-  border-color: var(--red);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: #b52b30;
-  border-color: #b52b30;
+  background: #c2410c;
+  border-color: #c2410c;
 }
 
 .btn-ghost {
   border: none;
   background: none;
-  color: var(--red);
+  color: var(--accent);
   cursor: pointer;
   font-weight: 600;
   padding: 4px 6px;
 }
 
-.toggle-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 14px;
-  color: var(--muted);
-  cursor: pointer;
-  user-select: none;
+/* ---------- trip list (home page) ---------- */
+.trip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: var(--card);
+.trip-row {
+  display: flex;
+  gap: 16px;
+  padding: 16px 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-left: 4px solid var(--accent);
+  flex-wrap: wrap;
 }
 
-.cal-dow {
-  padding: 8px 6px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  background: #eef1f7;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+.trip-row-main {
+  flex: 1;
+  min-width: 240px;
 }
 
-.cal-cell {
-  min-height: 92px;
-  padding: 6px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: var(--card);
+.trip-row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
 }
 
-.cal-cell.outside {
-  background: #f8fafd;
-}
-
-.cal-daynum {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-
-.cal-cell.today .cal-daynum {
-  display: inline-grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--navy);
-  color: #fff;
-}
-
-.cal-pill {
-  display: block;
-  font-size: 11.5px;
-  line-height: 1.3;
-  padding: 3px 6px;
-  border-radius: 6px;
-  margin-bottom: 3px;
-  background: #eef1f7;
-  color: var(--navy);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cal-pill.game {
-  background: var(--red-soft);
-  color: #8f1f24;
-}
-
-.cal-pill.other {
-  background: var(--amber-soft);
-  color: #7d5610;
-}
-
-.cal-pill.away-pill {
-  font-weight: 700;
+.trip-row-side .btn {
+  text-decoration: none;
 }
 
 /* ---------- event list ---------- */
@@ -395,7 +318,7 @@ button {
   min-width: 118px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--brand);
 }
 
 .event-time {
@@ -441,7 +364,7 @@ button {
 }
 
 .view-toggle button.active {
-  background: var(--navy);
+  background: var(--brand);
   color: #fff;
 }
 
@@ -485,7 +408,7 @@ button {
 }
 
 .player-chip .num {
-  color: var(--red);
+  color: var(--accent);
   font-size: 11.5px;
 }
 
@@ -526,7 +449,7 @@ button {
 }
 
 .num-cell {
-  color: var(--red);
+  color: var(--accent);
   font-weight: 700;
   width: 40px;
 }
@@ -552,24 +475,20 @@ button {
 }
 
 .edit-form input:focus {
-  outline: 2px solid var(--navy);
-  border-color: var(--navy);
+  outline: 2px solid var(--brand);
+  border-color: var(--brand);
 }
 
 .save-error {
-  color: var(--red);
+  color: var(--accent);
   font-size: 13px;
   margin-top: 8px;
 }
 
 @media (max-width: 640px) {
-  .cal-cell {
-    min-height: 64px;
-    padding: 4px;
-  }
-  .cal-pill {
-    font-size: 9.5px;
-    padding: 2px 3px;
+  .trip-row-side {
+    flex-direction: row;
+    align-items: center;
   }
   .event-row {
     flex-direction: column;

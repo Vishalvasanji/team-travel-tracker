@@ -6,7 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: `${TEAM_NAME} — Away Games & Hotels`,
   description:
-    "Track away games, tournaments, and team hotel bookings for BRSC U14 Elite Girls.",
+    "Track away games, tournaments, and team hotel bookings for Louisiana Elite Soccer 14U.",
 };
 
 export const viewport: Viewport = {

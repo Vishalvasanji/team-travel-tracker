@@ -1,12 +1,12 @@
-# BRSC U14 Elite Girls — Away Games & Hotel Tracker
+# Louisiana Elite Soccer 14U — Away Games & Hotel Tracker
 
 A small team website that keeps the whole squad on the same page for away
 weekends:
 
-- **Calendar** (`/`) — pulls the live PlayMetrics ICS feed (re-synced hourly),
-  shows games, tournaments, and (optionally) practices in a month view, and
-  highlights everything that's away from Baton Rouge. Canceled events are
-  filtered out.
+- **Away Games** (`/`) — pulls the live PlayMetrics ICS feed (re-synced
+  hourly) and lists every away game and tournament with dates, venues, and
+  Google Maps links. Practices, home games, and canceled events are filtered
+  out.
 - **Roster & Hotels** (`/hotels`) — away games/tournaments on back-to-back days
   are grouped into "trips" (e.g. the Pensacola + Daphne weekend). Parents pick
   the trip, add the hotel their family booked, and everyone can flip to the

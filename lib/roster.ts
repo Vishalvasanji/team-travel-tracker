@@ -3,7 +3,7 @@ export interface Player {
   number: number;
 }
 
-// BRSC U14 Elite Girls roster (from PlayMetrics)
+// Louisiana Elite Soccer 14U roster (from PlayMetrics)
 export const ROSTER: Player[] = [
   { name: "Aleena Abraham", number: 7 },
   { name: "Cate Bernard", number: 8 },
@@ -31,4 +31,4 @@ export const ROSTER: Player[] = [
   { name: "Adeline Zittrauer", number: 35 },
 ];
 
-export const TEAM_NAME = "BRSC U14 Elite Girls";
+export const TEAM_NAME = "Louisiana Elite Soccer 14U";
