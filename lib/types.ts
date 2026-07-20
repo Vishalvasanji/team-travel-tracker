@@ -13,6 +13,7 @@ export interface TeamEvent {
   location: string;
   city: string;
   state: string;
+  opponent: string;
   description: string;
 }
 

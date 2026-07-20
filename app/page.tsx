@@ -62,9 +62,6 @@ function TripCard({ trip, past = false }: { trip: Trip; past?: boolean }) {
       <div className="trip-row-main">
         <div className="event-title" style={{ fontSize: 16 }}>
           {trip.name}
-          {trip.multiDay && (
-            <span className="badge badge-tournament">Multi-day</span>
-          )}
           <span className="badge badge-away">{trip.place}</span>
         </div>
         <div className="trip-card-dates" style={{ margin: "4px 0 6px" }}>

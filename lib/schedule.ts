@@ -34,6 +34,12 @@ function classifyType(title: string): EventType {
   return "other";
 }
 
+// Game descriptions look like "U14 Elite Girls at Coastal Rush (League) | ...".
+function parseOpponent(description: string): string {
+  const m = description.match(/\b(?:at|vs\.?)\s+([^(|<\n]+?)\s*(?:\(|\||<|$)/i);
+  return m ? m[1].trim() : "";
+}
+
 export function parseIcsEvents(ics: string): TeamEvent[] {
   const unfolded = ics.replace(/\r\n/g, "\n").replace(/\n[ \t]/g, "");
   const blocks = unfolded
@@ -62,11 +68,13 @@ export function parseIcsEvents(ics: string): TeamEvent[] {
       rawSummary;
     const location = prop("LOCATION");
     const { city, state } = parseCityState(location);
+    const type = classifyType(title);
+    const description = prop("DESCRIPTION");
 
     events.push({
       uid: prop("UID"),
       title,
-      type: classifyType(title),
+      type,
       canceled,
       away: location !== "" && !location.includes(HOME_CITY),
       allDay: !hh,
@@ -76,7 +84,8 @@ export function parseIcsEvents(ics: string): TeamEvent[] {
       location,
       city,
       state,
-      description: prop("DESCRIPTION"),
+      opponent: type === "game" ? parseOpponent(description) : "",
+      description,
     });
   }
 
@@ -104,11 +113,15 @@ export function buildTrips(events: TeamEvent[]): Trip[] {
     (e) => e.away && !e.canceled && e.type !== "practice"
   );
 
+  // Adjacent days only merge into one trip when they're in the same city —
+  // back-to-back games in different towns (e.g. Pensacola then Daphne) are
+  // separate trips with separate hotels.
   const groups: TeamEvent[][] = [];
   for (const ev of away) {
     const current = groups[groups.length - 1];
     if (
       current &&
+      current[current.length - 1].city === ev.city &&
       daysBetween(current[current.length - 1].date, ev.date) <= 1
     ) {
       current.push(ev);
@@ -123,7 +136,12 @@ export function buildTrips(events: TeamEvent[]): Trip[] {
     const titles = [...new Set(group.map((e) => e.title))];
     const places = [...new Set(group.map((e) => `${e.city}, ${e.state}`))];
     const namedTitle = titles.find((t) => !/^game$/i.test(t));
-    const name = namedTitle ?? `Away Game${group.length > 1 ? "s" : ""}`;
+    const opponents = [...new Set(group.map((e) => e.opponent).filter(Boolean))];
+    const name =
+      namedTitle ??
+      (opponents.length
+        ? `at ${opponents.join(" & ")}`
+        : `Away Game${group.length > 1 ? "s" : ""}`);
     return {
       id: `${startDate}-${slugify(group[0].city || name)}`,
       name,

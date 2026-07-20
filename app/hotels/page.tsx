@@ -528,9 +528,6 @@ function TripHeader({ trip }: { trip: Trip }) {
     <div className="card" style={{ padding: "16px 18px" }}>
       <div className="event-title" style={{ fontSize: 17 }}>
         {trip.name}
-        {trip.multiDay && (
-          <span className="badge badge-tournament">Multi-day</span>
-        )}
         <span className="badge badge-away">{trip.place}</span>
       </div>
       <div className="event-location" style={{ marginTop: 6 }}>
