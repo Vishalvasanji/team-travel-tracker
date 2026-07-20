@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import type { Booking, ScheduleData, Trip } from "@/lib/types";
-import { ROSTER } from "@/lib/roster";
+import type { ScheduleData, Trip } from "@/lib/types";
 import { formatDate, formatRange, formatTime, mapsUrl, todayYmd } from "@/lib/format";
 
 export default function AwayGamesPage() {
   const [data, setData] = useState<ScheduleData | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,11 +16,6 @@ export default function AwayGamesPage() {
       })
       .then(setData)
       .catch((e) => setError(e.message));
-    // Booked counts are a nice-to-have here; ignore failures quietly.
-    fetch("/api/bookings")
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setBookings)
-      .catch(() => {});
   }, []);
 
   if (error) return <div className="error-box card">{error}</div>;
@@ -37,8 +29,7 @@ export default function AwayGamesPage() {
     <>
       <h1>Away Games &amp; Tournaments</h1>
       <p className="page-sub">
-        Live from the PlayMetrics schedule, synced hourly. Tap a trip to plan
-        hotels with the rest of the team.
+        Live from the PlayMetrics schedule, synced hourly.
       </p>
 
       {upcoming.length === 0 && (
@@ -47,7 +38,7 @@ export default function AwayGamesPage() {
 
       <div className="trip-list">
         {upcoming.map((t) => (
-          <TripCard key={t.id} trip={t} bookings={bookings} />
+          <TripCard key={t.id} trip={t} />
         ))}
       </div>
 
@@ -56,7 +47,7 @@ export default function AwayGamesPage() {
           <div className="section-title">Past trips</div>
           <div className="trip-list">
             {past.map((t) => (
-              <TripCard key={t.id} trip={t} bookings={bookings} past />
+              <TripCard key={t.id} trip={t} past />
             ))}
           </div>
         </>
@@ -65,16 +56,7 @@ export default function AwayGamesPage() {
   );
 }
 
-function TripCard({
-  trip,
-  bookings,
-  past = false,
-}: {
-  trip: Trip;
-  bookings: Booking[];
-  past?: boolean;
-}) {
-  const booked = bookings.filter((b) => b.trip_id === trip.id).length;
+function TripCard({ trip, past = false }: { trip: Trip; past?: boolean }) {
   return (
     <div className="trip-row card" style={past ? { opacity: 0.75 } : undefined}>
       <div className="trip-row-main">
@@ -99,14 +81,6 @@ function TripCard({
             </div>
           ))}
         </div>
-      </div>
-      <div className="trip-row-side">
-        <span className="badge badge-booked">
-          {booked} of {ROSTER.length} booked
-        </span>
-        <Link href={`/hotels?trip=${trip.id}`} className="btn btn-primary">
-          Plan hotels →
-        </Link>
       </div>
     </div>
   );

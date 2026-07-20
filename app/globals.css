@@ -280,24 +280,12 @@ button {
   padding: 16px 18px;
   align-items: flex-start;
   justify-content: space-between;
-  border-left: 4px solid var(--accent);
   flex-wrap: wrap;
 }
 
 .trip-row-main {
   flex: 1;
   min-width: 240px;
-}
-
-.trip-row-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.trip-row-side .btn {
-  text-decoration: none;
 }
 
 /* ---------- event list ---------- */
@@ -486,10 +474,6 @@ button {
 }
 
 @media (max-width: 640px) {
-  .trip-row-side {
-    flex-direction: row;
-    align-items: center;
-  }
   .event-row {
     flex-direction: column;
     gap: 4px;
