@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import { TEAM_NAME } from "@/lib/roster";
-import Nav from "./nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,14 +24,13 @@ export default function RootLayout({
       <body>
         <header className="site-header">
           <div className="container header-inner">
-            <div className="brand">
+            <Link href="/" className="brand">
               <span className="brand-badge">⚽</span>
               <div>
                 <div className="brand-title">{TEAM_NAME}</div>
                 <div className="brand-sub">Away Games &amp; Hotel Tracker</div>
               </div>
-            </div>
-            <Nav />
+            </Link>
           </div>
         </header>
         <main className="container">{children}</main>

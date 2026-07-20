@@ -4,15 +4,13 @@ A small team website that keeps the whole squad on the same page for away
 weekends:
 
 - **Away Games** (`/`) — pulls the live PlayMetrics ICS feed (re-synced
-  hourly) and lists every away game and tournament with dates, venues, and
-  Google Maps links. Practices, home games, and canceled events are filtered
+  hourly) and lists every away game and tournament with opponent names,
+  dates, and venues. Practices, home games, and canceled events are filtered
   out.
-- **Roster & Hotels** (`/hotels`) — away games/tournaments on back-to-back days
-  are grouped into "trips" (e.g. the Pensacola + Daphne weekend). Parents pick
-  the trip, add the hotel their family booked, and everyone can flip to the
-  **By Hotel** view to see who is staying where. The **My Bookings** view lets
-  a parent pick their player (remembered per device) and see every away trip
-  with its booking status in one list.
+- **Game hub** (`/trip/[id]`) — tap any game card to see that trip's hub:
+  venue map links, every hotel the team has booked with the players staying
+  at each, who still needs a hotel, and a form for parents to add or update
+  their own hotel (their player pick is remembered per device).
 
 ## Stack
 

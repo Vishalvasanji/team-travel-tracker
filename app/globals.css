@@ -56,6 +56,8 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .brand-badge {
@@ -286,6 +288,21 @@ button {
 .trip-row-main {
   flex: 1;
   min-width: 240px;
+}
+
+.trip-link {
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s;
+}
+
+.trip-link:hover {
+  box-shadow: 0 4px 14px rgba(76, 29, 149, 0.15);
+}
+
+.back-link {
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* ---------- event list ---------- */

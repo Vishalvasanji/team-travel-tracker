@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { ScheduleData, Trip } from "@/lib/types";
-import { formatDate, formatRange, formatTime, mapsUrl, todayYmd } from "@/lib/format";
+import { formatDate, formatRange, formatTime, todayYmd } from "@/lib/format";
 
 export default function AwayGamesPage() {
   const [data, setData] = useState<ScheduleData | null>(null);
@@ -29,7 +30,8 @@ export default function AwayGamesPage() {
     <>
       <h1>Away Games &amp; Tournaments</h1>
       <p className="page-sub">
-        Live from the PlayMetrics schedule, synced hourly.
+        Live from the PlayMetrics schedule, synced hourly. Tap a game to see
+        team hotels and add yours.
       </p>
 
       {upcoming.length === 0 && (
@@ -58,7 +60,11 @@ export default function AwayGamesPage() {
 
 function TripCard({ trip, past = false }: { trip: Trip; past?: boolean }) {
   return (
-    <div className="trip-row card" style={past ? { opacity: 0.75 } : undefined}>
+    <Link
+      href={`/trip/${trip.id}`}
+      className="trip-row card trip-link"
+      style={past ? { opacity: 0.75 } : undefined}
+    >
       <div className="trip-row-main">
         <div className="event-title" style={{ fontSize: 16 }}>
           {trip.name}
@@ -71,14 +77,11 @@ function TripCard({ trip, past = false }: { trip: Trip; past?: boolean }) {
           {trip.events.map((e) => (
             <div key={e.uid + e.date}>
               {formatDate(e.date)}
-              {e.time ? ` · ${formatTime(e.time)}` : ""} — 📍{" "}
-              <a href={mapsUrl(e.location)} target="_blank" rel="noreferrer">
-                {e.location}
-              </a>
+              {e.time ? ` · ${formatTime(e.time)}` : ""} — 📍 {e.location}
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
