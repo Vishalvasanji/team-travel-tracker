@@ -10,26 +10,35 @@ weekends:
 - **Roster & Hotels** (`/hotels`) — away games/tournaments on back-to-back days
   are grouped into "trips" (e.g. the Pensacola + Daphne weekend). Parents pick
   the trip, add the hotel their family booked, and everyone can flip to the
-  **By Hotel** view to see who is staying where.
+  **By Hotel** view to see who is staying where. The **My Bookings** view lets
+  a parent pick their player (remembered per device) and see every away trip
+  with its booking status in one list.
 
 ## Stack
 
 - Next.js (App Router) on the **Vercel free tier**
-- **Supabase free tier** (Postgres) stores hotel bookings via the PostgREST
-  API — table `hotel_bookings`, one row per player per trip, guarded by RLS
-  policies scoped to the anon key. Browsers never call Supabase directly;
-  everything goes through `/api/bookings` on the same origin.
-- No other dependencies; the ICS parser is ~60 lines in `lib/schedule.ts`
+- **Turso free tier** (libSQL/SQLite) stores hotel bookings — table
+  `hotel_bookings`, one row per player per trip, created automatically on
+  first use. Browsers never call the database directly; everything goes
+  through `/api/bookings` on the same origin.
+- Only runtime dependency beyond Next/React is `@libsql/client`; the ICS
+  parser is ~60 lines in `lib/schedule.ts`
 
 ## Configuration
 
-Everything works out of the box; optional env vars override the defaults:
-
 | Variable | Purpose |
 | --- | --- |
-| `PLAYMETRICS_ICS_URL` | Team calendar feed URL |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anon (publishable) key |
+| `TURSO_DATABASE_URL` | Turso database URL (`libsql://…`). **Required in production**; local dev falls back to a `file:local.db` SQLite file |
+| `TURSO_AUTH_TOKEN` | Turso database auth token (required with a `libsql://` URL) |
+| `PLAYMETRICS_ICS_URL` | Optional override for the team calendar feed URL |
+
+To create the database on Turso's free tier:
+
+```bash
+turso db create soccer-hotels
+turso db show soccer-hotels --url        # → TURSO_DATABASE_URL
+turso db tokens create soccer-hotels     # → TURSO_AUTH_TOKEN
+```
 
 The roster lives in `lib/roster.ts` — edit that file when players join or
 leave.

@@ -33,7 +33,7 @@ export interface ScheduleData {
 }
 
 export interface Booking {
-  id: string;
+  id: number;
   trip_id: string;
   player_name: string;
   hotel_name: string;
