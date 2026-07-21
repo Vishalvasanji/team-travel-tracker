@@ -8,13 +8,18 @@ export async function GET(req: NextRequest) {
   try {
     const c = await db();
     const result = await c.execute(
-      "SELECT id, trip_id, player_name, hotel_name, no_hotel, confirmation_number, created_at, updated_at FROM hotel_bookings ORDER BY created_at ASC"
+      "SELECT id, trip_id, player_name, hotel_name, no_hotel, flying, driving, flight_number, flight_time, flight_conf, confirmation_number, created_at, updated_at FROM hotel_bookings ORDER BY created_at ASC"
     );
     // Confirmation numbers are family-private: only returned for the
     // requesting device's own player.
     const rows = result.rows.map((r) => {
-      const { confirmation_number, ...rest } = r as Record<string, unknown>;
-      return r.player_name === player ? { ...rest, confirmation_number } : rest;
+      const { confirmation_number, flight_conf, ...rest } = r as Record<
+        string,
+        unknown
+      >;
+      return r.player_name === player
+        ? { ...rest, confirmation_number, flight_conf }
+        : rest;
     });
     return NextResponse.json(rows);
   } catch {
@@ -33,16 +38,23 @@ export async function POST(req: NextRequest) {
   const trip_id = cleanField(body?.trip_id, 100);
   const player_name = cleanField(body?.player_name, 100);
   const no_hotel = body?.no_hotel === true;
-  const hotel_name = no_hotel ? "" : cleanField(body?.hotel_name, 200);
+  const flying = body?.flying === true;
+  const driving = body?.driving === true;
+  const hotel_name = no_hotel ? "" : cleanField(body?.hotel_name ?? "", 200);
   const confirmation_number = no_hotel
     ? ""
     : cleanField(body?.confirmation_number ?? "", 100);
+  const flight_number = cleanField(body?.flight_number ?? "", 20);
+  const flight_time = cleanField(body?.flight_time ?? "", 100);
+  const flight_conf = cleanField(body?.flight_conf ?? "", 100);
   if (
     !trip_id ||
     !player_name ||
-    (!no_hotel && !hotel_name) ||
     hotel_name === null ||
-    confirmation_number === null
+    confirmation_number === null ||
+    flight_number === null ||
+    flight_time === null ||
+    flight_conf === null
   ) {
     return NextResponse.json({ error: "Invalid booking" }, { status: 400 });
   }
@@ -50,14 +62,30 @@ export async function POST(req: NextRequest) {
   try {
     const c = await db();
     await c.execute({
-      sql: `INSERT INTO hotel_bookings (trip_id, player_name, hotel_name, confirmation_number, no_hotel)
-            VALUES (?, ?, ?, ?, ?)
+      sql: `INSERT INTO hotel_bookings (trip_id, player_name, hotel_name, confirmation_number, no_hotel, flying, driving, flight_number, flight_time, flight_conf)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (trip_id, player_name) DO UPDATE SET
               hotel_name = excluded.hotel_name,
               confirmation_number = excluded.confirmation_number,
               no_hotel = excluded.no_hotel,
+              flying = excluded.flying,
+              driving = excluded.driving,
+              flight_number = excluded.flight_number,
+              flight_time = excluded.flight_time,
+              flight_conf = excluded.flight_conf,
               updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')`,
-      args: [trip_id, player_name, hotel_name, confirmation_number, no_hotel ? 1 : 0],
+      args: [
+        trip_id,
+        player_name,
+        hotel_name,
+        confirmation_number,
+        no_hotel ? 1 : 0,
+        flying ? 1 : 0,
+        driving ? 1 : 0,
+        flight_number,
+        flight_time,
+        flight_conf,
+      ],
     });
     return NextResponse.json({ ok: true });
   } catch {

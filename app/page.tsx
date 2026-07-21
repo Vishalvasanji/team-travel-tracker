@@ -6,6 +6,13 @@ import type { Booking, ScheduleData, Trip } from "@/lib/types";
 import { usePlayer } from "@/lib/player";
 import { fetchBookings } from "@/lib/bookings";
 import { formatDate, formatRange, formatTime, todayYmd } from "@/lib/format";
+import {
+  CarIcon,
+  HotelIcon,
+  PlaneIcon,
+  statusClass,
+  type PlanStatus,
+} from "@/lib/icons";
 
 export default function AwayGamesPage() {
   const player = usePlayer();
@@ -33,12 +40,19 @@ export default function AwayGamesPage() {
   const upcoming = data.trips.filter((t) => t.endDate >= today);
   const past = data.trips.filter((t) => t.endDate < today);
 
-  const statusFor = (trip: Trip): "booked" | "no_hotel" | "none" => {
+  const statusFor = (
+    trip: Trip
+  ): { hotel: PlanStatus; flight: PlanStatus; car: PlanStatus } => {
     const b = bookings.find(
       (x) => x.trip_id === trip.id && x.player_name === player
     );
-    if (!b) return "none";
-    return b.no_hotel ? "no_hotel" : "booked";
+    // Hotel defaults to "needs attention"; flight and driving are opt-in.
+    if (!b) return { hotel: "pending", flight: "off", car: "off" };
+    return {
+      hotel: b.no_hotel ? "off" : b.hotel_name ? "done" : "pending",
+      flight: b.flying ? (b.flight_number ? "done" : "pending") : "off",
+      car: b.driving ? "done" : "off",
+    };
   };
 
   return (
@@ -79,7 +93,7 @@ function TripCard({
   past = false,
 }: {
   trip: Trip;
-  status: "booked" | "no_hotel" | "none";
+  status: { hotel: PlanStatus; flight: PlanStatus; car: PlanStatus };
   past?: boolean;
 }) {
   return (
@@ -92,14 +106,12 @@ function TripCard({
         <div className="event-title" style={{ fontSize: 16 }}>
           {trip.name}
           <span className="badge badge-place">{trip.place}</span>
-          {status === "booked" && (
-            <span className="badge badge-booked">✓ Booked</span>
-          )}
-          {status === "no_hotel" && (
-            <span className="badge badge-place">No hotel needed</span>
-          )}
-          {status === "none" && !past && (
-            <span className="badge badge-need">Needs hotel</span>
+          {!past && (
+            <span className="status-icons">
+              <HotelIcon className={statusClass(status.hotel)} />
+              <PlaneIcon className={statusClass(status.flight)} />
+              <CarIcon className={statusClass(status.car)} />
+            </span>
           )}
         </div>
         <div className="trip-card-dates" style={{ margin: "4px 0 6px" }}>

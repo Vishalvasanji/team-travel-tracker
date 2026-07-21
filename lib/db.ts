@@ -37,6 +37,11 @@ export async function db(): Promise<Client> {
           notes TEXT NOT NULL DEFAULT '',
           confirmation_number TEXT NOT NULL DEFAULT '',
           no_hotel INTEGER NOT NULL DEFAULT 0,
+          flying INTEGER NOT NULL DEFAULT 0,
+          driving INTEGER NOT NULL DEFAULT 0,
+          flight_number TEXT NOT NULL DEFAULT '',
+          flight_time TEXT NOT NULL DEFAULT '',
+          flight_conf TEXT NOT NULL DEFAULT '',
           created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
           updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
           UNIQUE (trip_id, player_name)
@@ -55,6 +60,19 @@ export async function db(): Promise<Client> {
         );
       } catch {
         // Column already exists.
+      }
+      for (const col of [
+        "flying INTEGER NOT NULL DEFAULT 0",
+        "driving INTEGER NOT NULL DEFAULT 0",
+        "flight_number TEXT NOT NULL DEFAULT ''",
+        "flight_time TEXT NOT NULL DEFAULT ''",
+        "flight_conf TEXT NOT NULL DEFAULT ''",
+      ]) {
+        try {
+          await c.execute(`ALTER TABLE hotel_bookings ADD COLUMN ${col}`);
+        } catch {
+          // Column already exists.
+        }
       }
       await c.execute(`
         CREATE TABLE IF NOT EXISTS trip_links (

@@ -447,6 +447,68 @@ button {
   text-align: right;
 }
 
+/* ---------- travel plan status icons ---------- */
+.status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 2px;
+}
+
+.st-gray {
+  color: #c3cad8;
+}
+
+.st-yellow {
+  color: #d97706;
+}
+
+.st-green {
+  color: var(--green);
+}
+
+/* ---------- your travel plans ---------- */
+.plans-card {
+  padding: 14px 16px;
+  margin-bottom: 22px;
+}
+
+.plans-note {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.plan-row {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.plan-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.plan-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.plan-label {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.plan-body {
+  margin-top: 10px;
+  padding-left: 28px;
+}
+
 /* ---------- booking links ---------- */
 .link-form {
   display: flex;
