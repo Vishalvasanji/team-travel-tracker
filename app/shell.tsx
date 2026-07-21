@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { TEAM_NAME } from "@/lib/roster";
 import { PlayerBadge, PlayerGate, PlayerProvider } from "@/lib/player";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
+  // The access-code page sits before player selection.
+  const skipPlayerGate = usePathname() === "/enter";
   return (
     <PlayerProvider>
       <header className="site-header">
@@ -19,7 +22,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main className="container">
-        <PlayerGate>{children}</PlayerGate>
+        {skipPlayerGate ? children : <PlayerGate>{children}</PlayerGate>}
       </main>
       <footer className="site-footer">
         <div className="container">
