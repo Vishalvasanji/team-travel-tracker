@@ -2,13 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { Booking, ScheduleData, Trip } from "@/lib/types";
+import type {
+  Attendance,
+  Booking,
+  PlayerParent,
+  ScheduleData,
+  Trip,
+} from "@/lib/types";
 import { usePlayer } from "@/lib/player";
-import { fetchBookings } from "@/lib/bookings";
+import {
+  fetchAttendance,
+  fetchBookings,
+  fetchParents,
+} from "@/lib/bookings";
 import { formatDate, formatRange, formatTime, todayYmd } from "@/lib/format";
 import {
   CarIcon,
   HotelIcon,
+  PersonIcon,
   PlaneIcon,
   statusClass,
   type PlanStatus,
@@ -18,6 +29,8 @@ export default function AwayGamesPage() {
   const player = usePlayer();
   const [data, setData] = useState<ScheduleData | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [parents, setParents] = useState<PlayerParent[]>([]);
+  const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,6 +44,12 @@ export default function AwayGamesPage() {
     fetchBookings(player)
       .then(setBookings)
       .catch(() => {});
+    fetchParents()
+      .then(setParents)
+      .catch(() => {});
+    fetchAttendance()
+      .then(setAttendance)
+      .catch(() => {});
   }, [player]);
 
   if (error) return <div className="error-box card">{error}</div>;
@@ -42,17 +61,39 @@ export default function AwayGamesPage() {
 
   const statusFor = (
     trip: Trip
-  ): { hotel: PlanStatus; flight: PlanStatus; car: PlanStatus } => {
+  ): {
+    person: PlanStatus;
+    hotel: PlanStatus;
+    flight: PlanStatus;
+    car: PlanStatus;
+  } => {
     const b = bookings.find(
       (x) => x.trip_id === trip.id && x.player_name === player
     );
+    // Household attendance: green if anyone's going, gray only when every
+    // known parent answered "not going", yellow otherwise.
+    const myParents = parents.filter((p) => p.player_name === player);
+    const answers = attendance.filter(
+      (a) => a.trip_id === trip.id && a.player_name === player
+    );
+    const person: PlanStatus = answers.some((a) => a.going)
+      ? "done"
+      : myParents.length > 0 &&
+          myParents.every((p) =>
+            answers.some((a) => a.parent_name === p.parent_name && !a.going)
+          )
+        ? "off"
+        : "pending";
     // Hotel defaults to "needs attention"; flight and driving are opt-in.
-    if (!b) return { hotel: "pending", flight: "off", car: "off" };
-    return {
-      hotel: b.no_hotel ? "off" : b.hotel_name ? "done" : "pending",
-      flight: b.flying ? (b.flight_number ? "done" : "pending") : "off",
-      car: b.driving ? "done" : "off",
-    };
+    const rest = !b
+      ? { hotel: "pending" as PlanStatus, flight: "off" as PlanStatus, car: "off" as PlanStatus }
+      : {
+          hotel: (b.no_hotel ? "off" : b.hotel_name ? "done" : "pending") as PlanStatus,
+          flight: (b.flying ? (b.flight_number ? "done" : "pending") : "off") as PlanStatus,
+          // A ride with another family counts as travel handled.
+          car: (b.driving || b.riding_with ? "done" : "off") as PlanStatus,
+        };
+    return { person, ...rest };
   };
 
   return (
@@ -93,7 +134,12 @@ function TripCard({
   past = false,
 }: {
   trip: Trip;
-  status: { hotel: PlanStatus; flight: PlanStatus; car: PlanStatus };
+  status: {
+    person: PlanStatus;
+    hotel: PlanStatus;
+    flight: PlanStatus;
+    car: PlanStatus;
+  };
   past?: boolean;
 }) {
   return (
@@ -108,6 +154,7 @@ function TripCard({
           <span className="badge badge-place">{trip.place}</span>
           {!past && (
             <span className="status-icons">
+              <PersonIcon className={statusClass(status.person)} />
               <HotelIcon className={statusClass(status.hotel)} />
               <PlaneIcon className={statusClass(status.flight)} />
               <CarIcon className={statusClass(status.car)} />

@@ -1,6 +1,21 @@
 // Status icons for travel plans: hotel / flight / driving.
 export type PlanStatus = "off" | "pending" | "done";
 
+export function PersonIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="currentColor"
+      className={className}
+      aria-hidden
+    >
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-7.5 2-7.5 4.5V21h15v-2.5C19.5 16 16 14 12 14z" />
+    </svg>
+  );
+}
+
 export function HotelIcon({ className }: { className?: string }) {
   return (
     <svg

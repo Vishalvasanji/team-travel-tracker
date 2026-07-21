@@ -513,6 +513,71 @@ button {
   padding-left: 28px;
 }
 
+/* ---------- attendance ---------- */
+.att-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.att-name {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.att-buttons {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.att-btn {
+  border: none;
+  background: var(--card);
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.att-btn + .att-btn {
+  border-left: 1px solid var(--line);
+}
+
+.att-btn.att-yes {
+  background: var(--green);
+  color: #fff;
+}
+
+.att-btn.att-no {
+  background: #6b7280;
+  color: #fff;
+}
+
+.att-team-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  flex-wrap: wrap;
+}
+
+.att-team-names {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-parent {
+  font-weight: 400;
+  font-size: 12px;
+  opacity: 0.9;
+  margin-left: 4px;
+}
+
 /* ---------- booking links ---------- */
 .link-form {
   display: flex;
