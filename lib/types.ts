@@ -49,15 +49,24 @@ export interface TripLink {
   created_at: string;
 }
 
+// One travel-plan row per player per trip. Toggle semantics:
+//   hotel: on by default; no_hotel=1 means toggled off
+//   flight: off by default; flying=1 means toggled on
+//   driving: off by default; driving=1 means on (no extra data needed)
 export interface Booking {
   id: number;
   trip_id: string;
   player_name: string;
   hotel_name: string;
-  // 1 = family opted out of a hotel (driving back / staying with family).
   no_hotel: number;
-  // Present only on the requesting family's own bookings.
+  flying: number;
+  driving: number;
+  // Team-visible flight info.
+  flight_number: string;
+  flight_time: string;
+  // Present only on the requesting family's own row.
   confirmation_number?: string;
+  flight_conf?: string;
   created_at: string;
   updated_at: string;
 }

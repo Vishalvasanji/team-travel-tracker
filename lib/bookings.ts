@@ -59,6 +59,11 @@ export async function saveBooking(input: {
   hotel_name?: string;
   confirmation_number?: string;
   no_hotel?: boolean;
+  flying?: boolean;
+  driving?: boolean;
+  flight_number?: string;
+  flight_time?: string;
+  flight_conf?: string;
 }): Promise<void> {
   const res = await fetch("/api/bookings", {
     method: "POST",
