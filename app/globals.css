@@ -60,16 +60,6 @@ a {
   text-decoration: none;
 }
 
-.brand-badge {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--accent);
-  font-size: 22px;
-}
-
 .brand-title {
   font-weight: 700;
   font-size: 17px;
@@ -367,13 +357,13 @@ button {
   flex-wrap: wrap;
 }
 
-.header-player {
-  background: var(--brand-2);
+.player-chip.header-player {
+  background: var(--accent);
   color: #fff;
 }
 
-.header-player .num {
-  color: #ffb38a;
+.player-chip.header-player .num {
+  color: #fff;
 }
 
 /* ---------- your booking ---------- */
