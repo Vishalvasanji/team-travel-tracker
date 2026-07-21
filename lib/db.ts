@@ -58,6 +58,14 @@ export async function db(): Promise<Client> {
           created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
         )
       `);
+      await c.execute(`
+        CREATE TABLE IF NOT EXISTS trip_venues (
+          trip_id TEXT PRIMARY KEY,
+          venue TEXT NOT NULL,
+          added_by TEXT NOT NULL DEFAULT '',
+          updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+        )
+      `);
     })();
   }
   await schemaReady;

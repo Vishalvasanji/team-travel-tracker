@@ -3,16 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import type { Booking, ScheduleData, TripLink } from "@/lib/types";
+import type { Booking, ScheduleData, TripLink, TripVenue } from "@/lib/types";
 import { ROSTER } from "@/lib/roster";
 import { usePlayer } from "@/lib/player";
 import {
   addLink,
   fetchBookings,
   fetchLinks,
+  fetchVenues,
   removeBooking,
   removeLink,
   saveBooking,
+  saveVenue,
 } from "@/lib/bookings";
 import { formatRange, mapsUrl } from "@/lib/format";
 
@@ -43,6 +45,12 @@ export default function TripHubPage() {
   const [linkBusy, setLinkBusy] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
+  const [venues, setVenues] = useState<TripVenue[]>([]);
+  const [venueFormOpen, setVenueFormOpen] = useState(false);
+  const [venueInput, setVenueInput] = useState("");
+  const [venueBusy, setVenueBusy] = useState(false);
+  const [venueError, setVenueError] = useState<string | null>(null);
+
   const refreshBookings = () =>
     fetchBookings(player)
       .then(setBookings)
@@ -59,6 +67,9 @@ export default function TripHubPage() {
     refreshBookings();
     fetchLinks()
       .then(setLinks)
+      .catch(() => {});
+    fetchVenues()
+      .then(setVenues)
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player]);
@@ -166,6 +177,45 @@ export default function TripHubPage() {
   };
 
   const tripLinks = links.filter((l) => l.trip_id === trip.id);
+  const tripVenue = venues.find((v) => v.trip_id === trip.id);
+
+  // A feed location like "Birmingham, AL, USA" is just a city — no actual
+  // field. Street addresses / named venues have more parts.
+  const isVagueLocation = (location: string) =>
+    location
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p && p.toUpperCase() !== "USA").length <= 2;
+
+  const feedLocations = [...new Set(trip.events.map((e) => e.location))].filter(
+    (l) => !tripVenue || !isVagueLocation(l)
+  );
+  const hasVagueFeed = trip.events.some((e) => isVagueLocation(e.location));
+
+  const openVenueForm = () => {
+    setVenueInput(tripVenue?.venue ?? "");
+    setVenueError(null);
+    setVenueFormOpen(true);
+  };
+
+  const submitVenue = async () => {
+    if (!venueInput.trim()) return;
+    setVenueBusy(true);
+    setVenueError(null);
+    try {
+      await saveVenue({
+        trip_id: trip.id,
+        venue: venueInput.trim(),
+        added_by: player,
+      });
+      setVenues(await fetchVenues());
+      setVenueFormOpen(false);
+    } catch {
+      setVenueError("Could not save the location — please try again.");
+    } finally {
+      setVenueBusy(false);
+    }
+  };
 
   const submitLink = async () => {
     if (!linkUrl.trim()) return;
@@ -220,7 +270,29 @@ export default function TripHubPage() {
           {formatRange(trip.startDate, trip.endDate)}
         </div>
         <div className="event-location">
-          {[...new Set(trip.events.map((e) => e.location))].map((location) => (
+          {tripVenue && !venueFormOpen && (
+            <div>
+              📍{" "}
+              <a
+                href={mapsUrl(tripVenue.venue)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <strong>{tripVenue.venue}</strong>
+              </a>
+              <span className="link-meta">
+                {" "}
+                ·{" "}
+                {tripVenue.added_by
+                  ? `updated by ${tripVenue.added_by.split(" ")[0]}'s family`
+                  : "usual venue from past years"}
+              </span>{" "}
+              <button className="btn-ghost" onClick={openVenueForm}>
+                ✎ Edit
+              </button>
+            </div>
+          )}
+          {feedLocations.map((location) => (
             <div key={location}>
               📍{" "}
               <a href={mapsUrl(location)} target="_blank" rel="noreferrer">
@@ -228,7 +300,39 @@ export default function TripHubPage() {
               </a>
             </div>
           ))}
+          {!tripVenue && hasVagueFeed && !venueFormOpen && (
+            <button className="btn-ghost" onClick={openVenueForm}>
+              ＋ Set exact field location
+            </button>
+          )}
         </div>
+        {venueFormOpen && (
+          <div className="link-form" style={{ marginTop: 10 }}>
+            <input
+              placeholder="Field or park name / address"
+              value={venueInput}
+              onChange={(e) => setVenueInput(e.target.value)}
+              autoFocus
+            />
+            <div className="link-form-actions">
+              <button
+                className="btn"
+                disabled={venueBusy}
+                onClick={() => setVenueFormOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={venueBusy || !venueInput.trim()}
+                onClick={submitVenue}
+              >
+                {venueBusy ? "Saving…" : "Save"}
+              </button>
+            </div>
+            {venueError && <div className="save-error">{venueError}</div>}
+          </div>
+        )}
       </div>
 
       <div className="section-title">Your booking</div>
