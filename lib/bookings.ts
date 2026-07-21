@@ -1,4 +1,58 @@
-import type { Booking, TripLink, TripVenue } from "./types";
+import type {
+  Attendance,
+  Booking,
+  PlayerParent,
+  TripLink,
+  TripVenue,
+} from "./types";
+
+export async function fetchParents(): Promise<PlayerParent[]> {
+  const res = await fetch("/api/parents", { cache: "no-store" });
+  if (!res.ok) throw new Error("Could not load parents");
+  return res.json();
+}
+
+export async function addParent(
+  player_name: string,
+  parent_name: string
+): Promise<void> {
+  const res = await fetch("/api/parents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ player_name, parent_name }),
+  });
+  if (!res.ok) throw new Error("Could not save the parent");
+}
+
+export async function fetchAttendance(): Promise<Attendance[]> {
+  const res = await fetch("/api/attendance", { cache: "no-store" });
+  if (!res.ok) throw new Error("Could not load attendance");
+  return res.json();
+}
+
+export async function setAttendance(input: {
+  trip_id: string;
+  player_name: string;
+  parent_name: string;
+  going: boolean;
+}): Promise<void> {
+  const res = await fetch("/api/attendance", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Could not save attendance");
+}
+
+export async function clearAttendance(
+  trip_id: string,
+  player_name: string,
+  parent_name: string
+): Promise<void> {
+  const params = new URLSearchParams({ trip_id, player_name, parent_name });
+  const res = await fetch(`/api/attendance?${params}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Could not clear attendance");
+}
 
 export async function fetchVenues(): Promise<TripVenue[]> {
   const res = await fetch("/api/venue", { cache: "no-store" });
@@ -61,6 +115,7 @@ export async function saveBooking(input: {
   no_hotel?: boolean;
   flying?: boolean;
   driving?: boolean;
+  riding_with?: string;
   flight_number?: string;
   flight_time?: string;
   flight_conf?: string;

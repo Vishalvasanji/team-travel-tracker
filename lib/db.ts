@@ -67,6 +67,7 @@ export async function db(): Promise<Client> {
         "flight_number TEXT NOT NULL DEFAULT ''",
         "flight_time TEXT NOT NULL DEFAULT ''",
         "flight_conf TEXT NOT NULL DEFAULT ''",
+        "riding_with TEXT NOT NULL DEFAULT ''",
       ]) {
         try {
           await c.execute(`ALTER TABLE hotel_bookings ADD COLUMN ${col}`);
@@ -90,6 +91,26 @@ export async function db(): Promise<Client> {
           venue TEXT NOT NULL,
           added_by TEXT NOT NULL DEFAULT '',
           updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+        )
+      `);
+      await c.execute(`
+        CREATE TABLE IF NOT EXISTS player_parents (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          player_name TEXT NOT NULL,
+          parent_name TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+          UNIQUE (player_name, parent_name)
+        )
+      `);
+      await c.execute(`
+        CREATE TABLE IF NOT EXISTS trip_attendance (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          trip_id TEXT NOT NULL,
+          player_name TEXT NOT NULL,
+          parent_name TEXT NOT NULL,
+          going INTEGER NOT NULL DEFAULT 1,
+          updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+          UNIQUE (trip_id, player_name, parent_name)
         )
       `);
     })();

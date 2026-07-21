@@ -3,17 +3,29 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import type { Booking, ScheduleData, TripLink, TripVenue } from "@/lib/types";
+import type {
+  Attendance,
+  Booking,
+  PlayerParent,
+  ScheduleData,
+  TripLink,
+  TripVenue,
+} from "@/lib/types";
 import { ROSTER } from "@/lib/roster";
 import { usePlayer } from "@/lib/player";
 import {
   addLink,
+  addParent,
+  clearAttendance,
+  fetchAttendance,
   fetchBookings,
   fetchLinks,
+  fetchParents,
   fetchVenues,
   removeLink,
   saveBooking,
   saveVenue,
+  setAttendance,
 } from "@/lib/bookings";
 import { formatRange, mapsUrl } from "@/lib/format";
 
@@ -53,6 +65,12 @@ export default function TripHubPage() {
   const [linkBusy, setLinkBusy] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
+  // Attendance
+  const [parents, setParents] = useState<PlayerParent[]>([]);
+  const [attendance, setAttendanceRows] = useState<Attendance[]>([]);
+  const [newParentName, setNewParentName] = useState("");
+  const [addParentOpen, setAddParentOpen] = useState(false);
+
   // Venue override
   const [venues, setVenues] = useState<TripVenue[]>([]);
   const [venueFormOpen, setVenueFormOpen] = useState(false);
@@ -79,6 +97,12 @@ export default function TripHubPage() {
       .catch(() => {});
     fetchVenues()
       .then(setVenues)
+      .catch(() => {});
+    fetchParents()
+      .then(setParents)
+      .catch(() => {});
+    fetchAttendance()
+      .then(setAttendanceRows)
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player]);
@@ -168,6 +192,7 @@ export default function TripHubPage() {
         no_hotel: Boolean(myBooking?.no_hotel),
         flying: Boolean(myBooking?.flying),
         driving: Boolean(myBooking?.driving),
+        riding_with: myBooking?.riding_with ?? "",
         flight_number: myBooking?.flight_number ?? "",
         flight_time: myBooking?.flight_time ?? "",
         flight_conf: myBooking?.flight_conf ?? "",
@@ -182,6 +207,79 @@ export default function TripHubPage() {
       setBusy(false);
     }
   };
+
+  // ---- attendance ----
+  const myParents = parents.filter((p) => p.player_name === player);
+  const tripAttendance = attendance.filter((a) => a.trip_id === trip.id);
+  const attendanceFor = (playerName: string, parentName: string) =>
+    tripAttendance.find(
+      (a) => a.player_name === playerName && a.parent_name === parentName
+    );
+
+  const refreshAttendance = () =>
+    fetchAttendance()
+      .then(setAttendanceRows)
+      .catch(() => {});
+
+  const markAttendance = async (parentName: string, going: boolean) => {
+    const current = attendanceFor(player, parentName);
+    setBusy(true);
+    setSaveError(null);
+    try {
+      if (current && Boolean(current.going) === going) {
+        // Tapping the active state clears back to unanswered.
+        await clearAttendance(trip.id, player, parentName);
+      } else {
+        await setAttendance({
+          trip_id: trip.id,
+          player_name: player,
+          parent_name: parentName,
+          going,
+        });
+      }
+      await refreshAttendance();
+    } catch {
+      setSaveError("Could not save attendance — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitNewParent = async () => {
+    if (!newParentName.trim()) return;
+    setBusy(true);
+    try {
+      await addParent(player, newParentName.trim());
+      setParents(await fetchParents());
+      setNewParentName("");
+      setAddParentOpen(false);
+    } catch {
+      setSaveError("Could not add the parent — please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const goingByPlayer = new Map<string, string[]>();
+  for (const a of tripAttendance) {
+    if (a.going) {
+      const list = goingByPlayer.get(a.player_name) ?? [];
+      list.push(a.parent_name);
+      goingByPlayer.set(a.player_name, list);
+    }
+  }
+
+  // ---- carpools ----
+  const riderBookings = tripBookings.filter(
+    (b) => !b.driving && b.riding_with
+  );
+  const ridersFor = (driverPlayer: string) =>
+    riderBookings.filter((b) => b.riding_with === driverPlayer);
+  const orphanRiders = riderBookings.filter(
+    (b) => !driverBookings.some((d) => d.player_name === b.riding_with)
+  );
+  const familyName = (playerName: string) =>
+    playerName.split(" ").slice(-1)[0];
 
   const openHotelForm = () => {
     setHotel(myBooking?.hotel_name ?? "");
@@ -445,12 +543,60 @@ export default function TripHubPage() {
         </>
       )}
 
-      {driverBookings.length > 0 && (
+      {goingByPlayer.size > 0 && (
         <>
-          <div className="section-title">🚗 Driving</div>
+          <div className="section-title">👥 Parents going</div>
           <div className="hotel-group card">
-            <div className="chip-row">{driverBookings.map(chip)}</div>
+            {[...goingByPlayer.entries()].map(([playerName, names]) => {
+              const p = ROSTER.find((r) => r.name === playerName);
+              return (
+                <div key={playerName} className="att-team-row">
+                  <span className="player-chip">
+                    <span className="num">#{p?.number ?? "–"}</span>
+                    {playerName}
+                  </span>
+                  <span className="att-team-names">{names.join(", ")}</span>
+                </div>
+              );
+            })}
           </div>
+        </>
+      )}
+
+      {(driverBookings.length > 0 || orphanRiders.length > 0) && (
+        <>
+          <div className="section-title">🚗 Driving &amp; carpools</div>
+          {driverBookings.map((d) => {
+            const riders = ridersFor(d.player_name);
+            return (
+              <div key={d.id} className="hotel-group card">
+                <div className="hotel-group-header">
+                  <span className="hotel-name">
+                    {familyName(d.player_name)} family car
+                  </span>
+                  {riders.length > 0 && (
+                    <span className="hotel-count">
+                      +{riders.length} riding along
+                    </span>
+                  )}
+                </div>
+                <div className="chip-row">
+                  {chip(d)}
+                  {riders.map(chip)}
+                </div>
+              </div>
+            );
+          })}
+          {orphanRiders.map((b) => (
+            <div key={b.id} className="hotel-group card" style={{ borderStyle: "dashed" }}>
+              <div className="hotel-group-header">
+                <span className="hotel-name">
+                  Riding with the {familyName(b.riding_with)} family
+                </span>
+              </div>
+              <div className="chip-row">{chip(b)}</div>
+            </div>
+          ))}
         </>
       )}
 
@@ -460,9 +606,79 @@ export default function TripHubPage() {
       </div>
       <div className="card plans-card">
         <p className="plans-note">
-          The team sees your hotel, flight number, and driving status —
-          confirmation numbers stay private to your family.
+          The team sees who&apos;s going, your hotel, flight number, and
+          driving status — confirmation numbers stay private to your family.
         </p>
+
+        {/* Who's going */}
+        <div className="plan-row">
+          <span className="plan-label">👥 Who&apos;s going from your family?</span>
+          <div className="plan-body" style={{ paddingLeft: 0, marginTop: 8 }}>
+            {myParents.length === 0 && (
+              <span className="no-hotel">No parents registered yet.</span>
+            )}
+            {myParents.map((par) => {
+              const a = attendanceFor(player, par.parent_name);
+              const state = a ? (a.going ? "yes" : "no") : "none";
+              return (
+                <div key={par.id} className="att-row">
+                  <span className="att-name">{par.parent_name}</span>
+                  <span className="att-buttons">
+                    <button
+                      className={
+                        "att-btn" + (state === "yes" ? " att-yes" : "")
+                      }
+                      disabled={busy}
+                      onClick={() => markAttendance(par.parent_name, true)}
+                    >
+                      Going
+                    </button>
+                    <button
+                      className={"att-btn" + (state === "no" ? " att-no" : "")}
+                      disabled={busy}
+                      onClick={() => markAttendance(par.parent_name, false)}
+                    >
+                      Not going
+                    </button>
+                  </span>
+                </div>
+              );
+            })}
+            {addParentOpen ? (
+              <div className="link-form" style={{ marginTop: 8 }}>
+                <input
+                  placeholder="Parent's first name"
+                  value={newParentName}
+                  autoFocus
+                  onChange={(e) => setNewParentName(e.target.value)}
+                />
+                <div className="link-form-actions">
+                  <button
+                    className="btn"
+                    disabled={busy}
+                    onClick={() => setAddParentOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    disabled={busy || !newParentName.trim()}
+                    onClick={submitNewParent}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="btn-ghost"
+                onClick={() => setAddParentOpen(true)}
+              >
+                ＋ Add parent
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Hotel */}
         <div className="plan-row">
@@ -717,11 +933,31 @@ export default function TripHubPage() {
             />
             <span className="plan-label">🚗 Driving</span>
           </label>
-          {drivingOn && (
+          {drivingOn ? (
             <div className="plan-body">
               <span className="link-meta">
                 You&apos;re listed as driving for this trip.
               </span>
+            </div>
+          ) : (
+            <div className="plan-body">
+              <label className="link-meta" style={{ display: "block", marginBottom: 4 }}>
+                Riding with another family?
+              </label>
+              <select
+                className="btn"
+                style={{ cursor: "pointer" }}
+                disabled={busy}
+                value={myBooking?.riding_with ?? ""}
+                onChange={(e) => savePlan({ riding_with: e.target.value })}
+              >
+                <option value="">—</option>
+                {ROSTER.filter((p) => p.name !== player).map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {familyName(p.name)} family (#{p.number} {p.name})
+                  </option>
+                ))}
+              </select>
             </div>
           )}
         </div>

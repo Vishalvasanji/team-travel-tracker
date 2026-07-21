@@ -33,6 +33,22 @@ export interface ScheduleData {
   fetchedAt: string;
 }
 
+export interface PlayerParent {
+  id: number;
+  player_name: string;
+  parent_name: string;
+  created_at: string;
+}
+
+export interface Attendance {
+  id: number;
+  trip_id: string;
+  player_name: string;
+  parent_name: string;
+  going: number; // 1 = going, 0 = not going; no row = unanswered
+  updated_at: string;
+}
+
 export interface TripVenue {
   trip_id: string;
   venue: string;
@@ -64,6 +80,8 @@ export interface Booking {
   // Team-visible flight info.
   flight_number: string;
   flight_time: string;
+  // Player name of the family this player is riding with (carpool).
+  riding_with: string;
   // Present only on the requesting family's own row.
   confirmation_number?: string;
   flight_conf?: string;
