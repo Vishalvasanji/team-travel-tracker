@@ -48,6 +48,16 @@ export async function db(): Promise<Client> {
       } catch {
         // Column already exists on databases created before this migration.
       }
+      await c.execute(`
+        CREATE TABLE IF NOT EXISTS trip_links (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          trip_id TEXT NOT NULL,
+          label TEXT NOT NULL,
+          url TEXT NOT NULL,
+          added_by TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+        )
+      `);
     })();
   }
   await schemaReady;

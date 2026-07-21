@@ -3,10 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import type { Booking, ScheduleData } from "@/lib/types";
+import type { Booking, ScheduleData, TripLink } from "@/lib/types";
 import { ROSTER } from "@/lib/roster";
 import { usePlayer } from "@/lib/player";
-import { fetchBookings, removeBooking, saveBooking } from "@/lib/bookings";
+import {
+  addLink,
+  fetchBookings,
+  fetchLinks,
+  removeBooking,
+  removeLink,
+  saveBooking,
+} from "@/lib/bookings";
 import { formatRange, mapsUrl } from "@/lib/format";
 
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -30,6 +37,13 @@ export default function TripHubPage() {
   >([]);
   const [placesPicked, setPlacesPicked] = useState(false);
 
+  const [links, setLinks] = useState<TripLink[]>([]);
+  const [linkFormOpen, setLinkFormOpen] = useState(false);
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkBusy, setLinkBusy] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
   const refreshBookings = () =>
     fetchBookings(player)
       .then(setBookings)
@@ -44,6 +58,9 @@ export default function TripHubPage() {
       .then(setSchedule)
       .catch((e) => setError(e.message));
     refreshBookings();
+    fetchLinks()
+      .then(setLinks)
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player]);
 
@@ -146,6 +163,45 @@ export default function TripHubPage() {
       setSaveError("Could not remove the booking — please try again.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const tripLinks = links.filter((l) => l.trip_id === trip.id);
+
+  const submitLink = async () => {
+    if (!linkLabel.trim() || !linkUrl.trim()) return;
+    setLinkBusy(true);
+    setLinkError(null);
+    const url = /^https?:\/\//i.test(linkUrl.trim())
+      ? linkUrl.trim()
+      : `https://${linkUrl.trim()}`;
+    try {
+      await addLink({
+        trip_id: trip.id,
+        label: linkLabel.trim(),
+        url,
+        added_by: player,
+      });
+      setLinks(await fetchLinks());
+      setLinkFormOpen(false);
+      setLinkLabel("");
+      setLinkUrl("");
+    } catch {
+      setLinkError("Could not save the link — check the URL and try again.");
+    } finally {
+      setLinkBusy(false);
+    }
+  };
+
+  const deleteLink = async (id: number) => {
+    setLinkBusy(true);
+    try {
+      await removeLink(id);
+      setLinks(await fetchLinks());
+    } catch {
+      setLinkError("Could not remove the link — please try again.");
+    } finally {
+      setLinkBusy(false);
     }
   };
 
@@ -278,6 +334,83 @@ export default function TripHubPage() {
             </button>
           </div>
         )}
+      </div>
+
+      <div className="section-title">
+        🔗 Booking links
+        {!linkFormOpen && (
+          <button
+            className="btn-ghost"
+            onClick={() => {
+              setLinkError(null);
+              setLinkFormOpen(true);
+            }}
+          >
+            ＋ Add link
+          </button>
+        )}
+      </div>
+      <div className="card" style={{ padding: "14px 16px", marginBottom: 22 }}>
+        {linkFormOpen && (
+          <div className="edit-form" style={{ marginBottom: tripLinks.length ? 12 : 0 }}>
+            <input
+              placeholder="What is it? (e.g. Team room block — Hampton Inn)"
+              value={linkLabel}
+              onChange={(e) => setLinkLabel(e.target.value)}
+              autoFocus
+              style={{ minWidth: 240 }}
+            />
+            <input
+              placeholder="Link (https://…)"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+            />
+            <button
+              className="btn btn-primary"
+              disabled={linkBusy || !linkLabel.trim() || !linkUrl.trim()}
+              onClick={submitLink}
+            >
+              {linkBusy ? "Saving…" : "Save"}
+            </button>
+            <button
+              className="btn"
+              disabled={linkBusy}
+              onClick={() => setLinkFormOpen(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        {linkError && <div className="save-error">{linkError}</div>}
+        {tripLinks.length === 0 && !linkFormOpen && (
+          <span className="no-hotel">
+            No booking links yet — share a room block or hotel deal with the
+            team.
+          </span>
+        )}
+        {tripLinks.map((l) => (
+          <div key={l.id} className="link-row">
+            <div>
+              <a href={l.url} target="_blank" rel="noreferrer nofollow">
+                {l.label} ↗
+              </a>
+              {l.added_by && (
+                <span className="link-meta">
+                  {" "}
+                  · added by {l.added_by.split(" ")[0]}&apos;s family
+                </span>
+              )}
+            </div>
+            <button
+              className="link-remove"
+              title="Remove link"
+              disabled={linkBusy}
+              onClick={() => deleteLink(l.id)}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
       </div>
 
       <div className="section-title">
