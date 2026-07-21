@@ -29,6 +29,7 @@ weekends:
 | `TURSO_DATABASE_URL` | Turso database URL (`libsql://…`). **Required in production**; local dev falls back to a `file:local.db` SQLite file |
 | `TURSO_AUTH_TOKEN` | Turso database auth token (required with a `libsql://` URL) |
 | `GOOGLE_MAPS_API_KEY` | Optional. Enables Google Places hotel autocomplete in the booking form (server-side proxy; the key is never sent to browsers). Without it, the form falls back to fuzzy matching against team-entered hotels |
+| `TEAM_ACCESS_CODE` | Optional. When set, the whole site (pages and APIs) requires this shared code once per device — share it in the team chat. Case-insensitive. Unset = site is open |
 | `PLAYMETRICS_ICS_URL` | Optional override for the team calendar feed URL |
 
 To create the database on Turso's free tier:

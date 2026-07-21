@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ROSTER } from "./roster";
 
 const STORAGE_KEY = "soccer-hotels-my-player";
@@ -8,11 +8,13 @@ const STORAGE_KEY = "soccer-hotels-my-player";
 interface PlayerState {
   player: string | null; // null = still loading from storage, "" = not picked
   select: (name: string) => void;
+  reset: () => void;
 }
 
 const PlayerContext = createContext<PlayerState>({
   player: null,
   select: () => {},
+  reset: () => {},
 });
 
 export function usePlayer(): string {
@@ -31,8 +33,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     setPlayer(name);
   };
 
+  const reset = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setPlayer("");
+  };
+
   return (
-    <PlayerContext.Provider value={{ player, select }}>
+    <PlayerContext.Provider value={{ player, select, reset }}>
       {children}
     </PlayerContext.Provider>
   );
@@ -91,12 +98,37 @@ export function PlayerGate({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Long-pressing the badge for 2 seconds offers a hidden way to re-pick the
+// player if the wrong one was chosen; casual taps do nothing.
 export function PlayerBadge() {
-  const player = usePlayer();
+  const { player, reset } = useContext(PlayerContext);
+  const timer = useRef<number | null>(null);
   const p = ROSTER.find((r) => r.name === player);
   if (!player) return null;
+
+  const startPress = () => {
+    timer.current = window.setTimeout(() => {
+      if (
+        window.confirm(
+          "Switch player on this device? Your family's saved entries stay in place."
+        )
+      ) {
+        reset();
+      }
+    }, 2000);
+  };
+  const cancelPress = () => {
+    if (timer.current) window.clearTimeout(timer.current);
+  };
+
   return (
-    <span className="player-chip header-player">
+    <span
+      className="player-chip header-player"
+      onPointerDown={startPress}
+      onPointerUp={cancelPress}
+      onPointerLeave={cancelPress}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <span className="num">#{p?.number ?? "–"}</span>
       {player}
     </span>
