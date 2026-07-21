@@ -280,13 +280,9 @@ export default function TripHubPage() {
               >
                 <strong>{tripVenue.venue}</strong>
               </a>
-              <span className="link-meta">
-                {" "}
-                ·{" "}
-                {tripVenue.added_by
-                  ? `updated by ${tripVenue.added_by.split(" ")[0]}'s family`
-                  : "usual venue from past years"}
-              </span>{" "}
+              {!tripVenue.added_by && (
+                <span className="link-meta"> · usual venue from past years</span>
+              )}{" "}
               <button className="btn-ghost" onClick={openVenueForm}>
                 ✎ Edit
               </button>
@@ -499,12 +495,6 @@ export default function TripHubPage() {
               <a href={l.url} target="_blank" rel="noreferrer nofollow">
                 {l.label} ↗
               </a>
-              {l.added_by && (
-                <span className="link-meta">
-                  {" "}
-                  · added by {l.added_by.split(" ")[0]}&apos;s family
-                </span>
-              )}
             </div>
             <button
               className="link-remove"
