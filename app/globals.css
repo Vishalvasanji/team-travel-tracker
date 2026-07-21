@@ -447,6 +447,43 @@ button {
   text-align: right;
 }
 
+/* ---------- booking links ---------- */
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14.5px;
+}
+
+.link-row:last-child {
+  border-bottom: none;
+}
+
+.link-row a {
+  font-weight: 600;
+}
+
+.link-meta {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.link-remove {
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+}
+
+.link-remove:hover {
+  color: var(--accent);
+}
+
 /* ---------- event list ---------- */
 .event-list {
   display: flex;

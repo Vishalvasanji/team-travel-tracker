@@ -1,4 +1,29 @@
-import type { Booking } from "./types";
+import type { Booking, TripLink } from "./types";
+
+export async function fetchLinks(): Promise<TripLink[]> {
+  const res = await fetch("/api/links", { cache: "no-store" });
+  if (!res.ok) throw new Error("Could not load booking links");
+  return res.json();
+}
+
+export async function addLink(input: {
+  trip_id: string;
+  label: string;
+  url: string;
+  added_by: string;
+}): Promise<void> {
+  const res = await fetch("/api/links", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error("Could not save the link");
+}
+
+export async function removeLink(id: number): Promise<void> {
+  const res = await fetch(`/api/links?id=${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Could not remove the link");
+}
 
 // Pass the device's player to receive that player's confirmation number;
 // everyone else's stays server-side.

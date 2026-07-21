@@ -33,6 +33,15 @@ export interface ScheduleData {
   fetchedAt: string;
 }
 
+export interface TripLink {
+  id: number;
+  trip_id: string;
+  label: string;
+  url: string;
+  added_by: string;
+  created_at: string;
+}
+
 export interface Booking {
   id: number;
   trip_id: string;
