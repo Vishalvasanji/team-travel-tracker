@@ -235,9 +235,9 @@ export default function TripHubPage() {
       <div className="card" style={{ padding: "16px 18px", marginBottom: 22 }}>
         {formOpen ? (
           <>
-            <div className="edit-form">
+            <div className="link-form">
               <input
-                placeholder="Hotel name"
+                placeholder="Search hotel name"
                 value={hotel}
                 onChange={(e) => {
                   setHotel(e.target.value);
@@ -245,62 +245,66 @@ export default function TripHubPage() {
                 }}
                 autoFocus
               />
+              {suggestions.length > 0 && (
+                <div className="suggest-row">
+                  Same hotel?{" "}
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      className="suggest-chip"
+                      onClick={() => {
+                        setHotel(s);
+                        setPlacesPicked(true);
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {placeResults.length > 0 && (
+                <div className="place-results">
+                  {placeResults.map((r) => (
+                    <button
+                      key={r.name + r.address}
+                      className="place-result"
+                      onClick={() => {
+                        setHotel(r.name);
+                        setPlacesPicked(true);
+                        setPlaceResults([]);
+                      }}
+                    >
+                      <span className="place-name">{r.name}</span>
+                      <span className="place-address">{r.address}</span>
+                    </button>
+                  ))}
+                  <div className="place-attribution">
+                    Hotel search by Google
+                  </div>
+                </div>
+              )}
               <input
                 placeholder="Confirmation # (optional)"
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
               />
-              <button
-                className="btn btn-primary"
-                disabled={busy || !hotel.trim()}
-                onClick={save}
-              >
-                {busy ? "Saving…" : "Save"}
-              </button>
-              <button
-                className="btn"
-                disabled={busy}
-                onClick={() => setFormOpen(false)}
-              >
-                Cancel
-              </button>
+              <div className="link-form-actions">
+                <button
+                  className="btn"
+                  disabled={busy}
+                  onClick={() => setFormOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  disabled={busy || !hotel.trim()}
+                  onClick={save}
+                >
+                  {busy ? "Saving…" : "Save"}
+                </button>
+              </div>
             </div>
-            {suggestions.length > 0 && (
-              <div className="suggest-row">
-                Same hotel?{" "}
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    className="suggest-chip"
-                    onClick={() => {
-                      setHotel(s);
-                      setPlacesPicked(true);
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-            {placeResults.length > 0 && (
-              <div className="place-results">
-                {placeResults.map((r) => (
-                  <button
-                    key={r.name + r.address}
-                    className="place-result"
-                    onClick={() => {
-                      setHotel(r.name);
-                      setPlacesPicked(true);
-                      setPlaceResults([]);
-                    }}
-                  >
-                    <span className="place-name">{r.name}</span>
-                    <span className="place-address">{r.address}</span>
-                  </button>
-                ))}
-                <div className="place-attribution">Hotel search by Google</div>
-              </div>
-            )}
             {saveError && <div className="save-error">{saveError}</div>}
           </>
         ) : myBooking ? (
