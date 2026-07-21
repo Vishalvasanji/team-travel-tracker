@@ -5,10 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { Booking, ScheduleData } from "@/lib/types";
 import { ROSTER } from "@/lib/roster";
-import { fetchBookings, removeBooking, saveBooking } from "@/lib/bookings";
+import { fetchBookings } from "@/lib/bookings";
 import { formatRange, mapsUrl } from "@/lib/format";
-
-const PLAYER_STORAGE_KEY = "soccer-hotels-my-player";
 
 export default function TripHubPage() {
   const params = useParams<{ id: string }>();
@@ -18,17 +16,6 @@ export default function TripHubPage() {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [player, setPlayer] = useState("");
-  const [hotel, setHotel] = useState("");
-  const [notes, setNotes] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const refreshBookings = () =>
-    fetchBookings()
-      .then(setBookings)
-      .catch(() => setError("Could not load hotel bookings."));
-
   useEffect(() => {
     fetch("/api/events")
       .then(async (r) => {
@@ -37,9 +24,9 @@ export default function TripHubPage() {
       })
       .then(setSchedule)
       .catch((e) => setError(e.message));
-    refreshBookings();
-    const saved = localStorage.getItem(PLAYER_STORAGE_KEY);
-    if (saved) setPlayer(saved);
+    fetchBookings()
+      .then(setBookings)
+      .catch(() => setError("Could not load hotel bookings."));
   }, []);
 
   const trip = schedule?.trips.find((t) => t.id === tripId);
@@ -48,18 +35,6 @@ export default function TripHubPage() {
     () => (bookings ?? []).filter((b) => b.trip_id === tripId),
     [bookings, tripId]
   );
-
-  const bookingFor = (name: string) =>
-    tripBookings.find((b) => b.player_name === name);
-
-  // Prefill the form with the selected player's existing booking.
-  useEffect(() => {
-    const b = player ? bookingFor(player) : undefined;
-    setHotel(b?.hotel_name ?? "");
-    setNotes(b?.notes ?? "");
-    setSaveError(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [player, bookings]);
 
   if (error) return <div className="error-box card">{error}</div>;
   if (!schedule || !bookings)
@@ -73,42 +48,9 @@ export default function TripHubPage() {
     );
 
   const hotels = [...new Set(tripBookings.map((b) => b.hotel_name))];
-  const unbooked = ROSTER.filter((p) => !bookingFor(p.name));
-  const existing = player ? bookingFor(player) : undefined;
-
-  const save = async () => {
-    if (!player || !hotel.trim()) return;
-    setBusy(true);
-    setSaveError(null);
-    try {
-      await saveBooking({
-        trip_id: trip.id,
-        player_name: player,
-        hotel_name: hotel.trim(),
-        notes: notes.trim(),
-      });
-      localStorage.setItem(PLAYER_STORAGE_KEY, player);
-      await refreshBookings();
-    } catch {
-      setSaveError("Save failed — please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const remove = async () => {
-    if (!player) return;
-    setBusy(true);
-    setSaveError(null);
-    try {
-      await removeBooking(trip.id, player);
-      await refreshBookings();
-    } catch {
-      setSaveError("Could not remove the booking — please try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const unbooked = ROSTER.filter(
+    (p) => !tripBookings.some((b) => b.player_name === p.name)
+  );
 
   return (
     <>
@@ -146,9 +88,7 @@ export default function TripHubPage() {
       </div>
 
       {hotels.length === 0 && (
-        <div className="card loading">
-          No hotels booked for this trip yet — be the first below.
-        </div>
+        <div className="card loading">No hotels booked for this trip yet.</div>
       )}
       {hotels.map((h) => {
         const stayers = tripBookings.filter((b) => b.hotel_name === h);
@@ -194,56 +134,6 @@ export default function TripHubPage() {
           </div>
         </div>
       )}
-
-      <div className="section-title">Add or update your hotel</div>
-      <div className="card" style={{ padding: "16px 18px" }}>
-        <div className="edit-form">
-          <select
-            className="btn"
-            value={player}
-            onChange={(e) => setPlayer(e.target.value)}
-            style={{ cursor: "pointer" }}
-          >
-            <option value="">Select your player…</option>
-            {ROSTER.map((p) => (
-              <option key={p.name} value={p.name}>
-                #{p.number} {p.name}
-              </option>
-            ))}
-          </select>
-          <input
-            list="hotel-options"
-            placeholder="Hotel name"
-            value={hotel}
-            onChange={(e) => setHotel(e.target.value)}
-            disabled={!player}
-          />
-          <datalist id="hotel-options">
-            {hotels.map((h) => (
-              <option key={h} value={h} />
-            ))}
-          </datalist>
-          <input
-            placeholder="Notes (optional — nights, room block…)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            disabled={!player}
-          />
-          <button
-            className="btn btn-primary"
-            disabled={busy || !player || !hotel.trim()}
-            onClick={save}
-          >
-            {busy ? "Saving…" : existing ? "Update" : "Save"}
-          </button>
-          {existing && (
-            <button className="btn-ghost" disabled={busy} onClick={remove}>
-              Remove
-            </button>
-          )}
-        </div>
-        {saveError && <div className="save-error">{saveError}</div>}
-      </div>
     </>
   );
 }
