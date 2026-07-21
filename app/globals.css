@@ -448,6 +448,30 @@ button {
 }
 
 /* ---------- booking links ---------- */
+.link-form {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.link-form input {
+  font: inherit;
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.link-form input:focus {
+  outline: 2px solid var(--brand);
+  border-color: var(--brand);
+}
+
+.link-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .link-row {
   display: flex;
   align-items: center;

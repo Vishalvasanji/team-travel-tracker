@@ -39,7 +39,6 @@ export default function TripHubPage() {
 
   const [links, setLinks] = useState<TripLink[]>([]);
   const [linkFormOpen, setLinkFormOpen] = useState(false);
-  const [linkLabel, setLinkLabel] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkBusy, setLinkBusy] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -169,22 +168,21 @@ export default function TripHubPage() {
   const tripLinks = links.filter((l) => l.trip_id === trip.id);
 
   const submitLink = async () => {
-    if (!linkLabel.trim() || !linkUrl.trim()) return;
+    if (!linkUrl.trim()) return;
     setLinkBusy(true);
     setLinkError(null);
     const url = /^https?:\/\//i.test(linkUrl.trim())
       ? linkUrl.trim()
       : `https://${linkUrl.trim()}`;
+    // Label the link by its site name, e.g. "hilton.com".
+    let label = "Link";
     try {
-      await addLink({
-        trip_id: trip.id,
-        label: linkLabel.trim(),
-        url,
-        added_by: player,
-      });
+      label = new URL(url).hostname.replace(/^www\./, "");
+    } catch {}
+    try {
+      await addLink({ trip_id: trip.id, label, url, added_by: player });
       setLinks(await fetchLinks());
       setLinkFormOpen(false);
-      setLinkLabel("");
       setLinkUrl("");
     } catch {
       setLinkError("Could not save the link — check the URL and try again.");
@@ -352,33 +350,32 @@ export default function TripHubPage() {
       </div>
       <div className="card" style={{ padding: "14px 16px", marginBottom: 22 }}>
         {linkFormOpen && (
-          <div className="edit-form" style={{ marginBottom: tripLinks.length ? 12 : 0 }}>
+          <div
+            className="link-form"
+            style={{ marginBottom: tripLinks.length ? 12 : 0 }}
+          >
             <input
-              placeholder="What is it? (e.g. Team room block — Hampton Inn)"
-              value={linkLabel}
-              onChange={(e) => setLinkLabel(e.target.value)}
-              autoFocus
-              style={{ minWidth: 240 }}
-            />
-            <input
-              placeholder="Link (https://…)"
+              placeholder="Paste booking link (https://…)"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
+              autoFocus
             />
-            <button
-              className="btn btn-primary"
-              disabled={linkBusy || !linkLabel.trim() || !linkUrl.trim()}
-              onClick={submitLink}
-            >
-              {linkBusy ? "Saving…" : "Save"}
-            </button>
-            <button
-              className="btn"
-              disabled={linkBusy}
-              onClick={() => setLinkFormOpen(false)}
-            >
-              Cancel
-            </button>
+            <div className="link-form-actions">
+              <button
+                className="btn"
+                disabled={linkBusy}
+                onClick={() => setLinkFormOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                disabled={linkBusy || !linkUrl.trim()}
+                onClick={submitLink}
+              >
+                {linkBusy ? "Saving…" : "Save"}
+              </button>
+            </div>
           </div>
         )}
         {linkError && <div className="save-error">{linkError}</div>}
