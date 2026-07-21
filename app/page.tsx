@@ -33,8 +33,13 @@ export default function AwayGamesPage() {
   const upcoming = data.trips.filter((t) => t.endDate >= today);
   const past = data.trips.filter((t) => t.endDate < today);
 
-  const isBooked = (trip: Trip) =>
-    bookings.some((b) => b.trip_id === trip.id && b.player_name === player);
+  const statusFor = (trip: Trip): "booked" | "no_hotel" | "none" => {
+    const b = bookings.find(
+      (x) => x.trip_id === trip.id && x.player_name === player
+    );
+    if (!b) return "none";
+    return b.no_hotel ? "no_hotel" : "booked";
+  };
 
   return (
     <>
@@ -50,7 +55,7 @@ export default function AwayGamesPage() {
 
       <div className="trip-list">
         {upcoming.map((t) => (
-          <TripCard key={t.id} trip={t} booked={isBooked(t)} />
+          <TripCard key={t.id} trip={t} status={statusFor(t)} />
         ))}
       </div>
 
@@ -59,7 +64,7 @@ export default function AwayGamesPage() {
           <div className="section-title">Past trips</div>
           <div className="trip-list">
             {past.map((t) => (
-              <TripCard key={t.id} trip={t} booked={isBooked(t)} past />
+              <TripCard key={t.id} trip={t} status={statusFor(t)} past />
             ))}
           </div>
         </>
@@ -70,11 +75,11 @@ export default function AwayGamesPage() {
 
 function TripCard({
   trip,
-  booked,
+  status,
   past = false,
 }: {
   trip: Trip;
-  booked: boolean;
+  status: "booked" | "no_hotel" | "none";
   past?: boolean;
 }) {
   return (
@@ -87,10 +92,14 @@ function TripCard({
         <div className="event-title" style={{ fontSize: 16 }}>
           {trip.name}
           <span className="badge badge-place">{trip.place}</span>
-          {booked ? (
+          {status === "booked" && (
             <span className="badge badge-booked">✓ Booked</span>
-          ) : (
-            !past && <span className="badge badge-need">Needs hotel</span>
+          )}
+          {status === "no_hotel" && (
+            <span className="badge badge-place">No hotel needed</span>
+          )}
+          {status === "none" && !past && (
+            <span className="badge badge-need">Needs hotel</span>
           )}
         </div>
         <div className="trip-card-dates" style={{ margin: "4px 0 6px" }}>

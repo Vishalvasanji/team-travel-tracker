@@ -56,8 +56,9 @@ export async function fetchBookings(player?: string): Promise<Booking[]> {
 export async function saveBooking(input: {
   trip_id: string;
   player_name: string;
-  hotel_name: string;
-  confirmation_number: string;
+  hotel_name?: string;
+  confirmation_number?: string;
+  no_hotel?: boolean;
 }): Promise<void> {
   const res = await fetch("/api/bookings", {
     method: "POST",

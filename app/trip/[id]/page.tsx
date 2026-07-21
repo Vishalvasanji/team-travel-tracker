@@ -115,7 +115,9 @@ export default function TripHubPage() {
     );
 
   const myBooking = tripBookings.find((b) => b.player_name === player);
-  const hotels = [...new Set(tripBookings.map((b) => b.hotel_name))];
+  const hotelBookings = tripBookings.filter((b) => !b.no_hotel);
+  const noHotelBookings = tripBookings.filter((b) => b.no_hotel);
+  const hotels = [...new Set(hotelBookings.map((b) => b.hotel_name))];
   const unbooked = ROSTER.filter(
     (p) => !tripBookings.some((b) => b.player_name === p.name)
   );
@@ -135,8 +137,21 @@ export default function TripHubPage() {
     setHotel(myBooking?.hotel_name ?? "");
     setConfirmation(myBooking?.confirmation_number ?? "");
     setSaveError(null);
-    setPlacesPicked(Boolean(myBooking));
+    setPlacesPicked(Boolean(myBooking && !myBooking.no_hotel));
     setFormOpen(true);
+  };
+
+  const markNoHotel = async () => {
+    setBusy(true);
+    setSaveError(null);
+    try {
+      await saveBooking({ trip_id: trip.id, player_name: player, no_hotel: true });
+      await refreshBookings();
+    } catch {
+      setSaveError("Could not save — please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const save = async () => {
@@ -407,6 +422,20 @@ export default function TripHubPage() {
             </div>
             {saveError && <div className="save-error">{saveError}</div>}
           </>
+        ) : myBooking && myBooking.no_hotel ? (
+          <div className="my-booking">
+            <span className="no-hotel">
+              No hotel needed — driving back or staying nearby
+            </span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn" onClick={openForm}>
+                Add hotel
+              </button>
+              <button className="btn-ghost" disabled={busy} onClick={remove}>
+                Undo
+              </button>
+            </div>
+          </div>
         ) : myBooking ? (
           <div className="my-booking">
             <div>
@@ -431,9 +460,18 @@ export default function TripHubPage() {
         ) : (
           <div className="my-booking">
             <span className="no-hotel">No hotel booked</span>
-            <button className="btn btn-primary add-btn" onClick={openForm}>
-              ＋ Add hotel
-            </button>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                className="btn-ghost"
+                disabled={busy}
+                onClick={markNoHotel}
+              >
+                No hotel needed
+              </button>
+              <button className="btn btn-primary add-btn" onClick={openForm}>
+                ＋ Add hotel
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -511,7 +549,7 @@ export default function TripHubPage() {
       <div className="section-title">
         🏨 Team hotels
         <span className="badge badge-booked">
-          {tripBookings.length} of {ROSTER.length} booked
+          {hotelBookings.length} of {ROSTER.length} booked
         </span>
       </div>
 
@@ -519,7 +557,7 @@ export default function TripHubPage() {
         <div className="card loading">No hotels booked for this trip yet.</div>
       )}
       {hotels.map((h) => {
-        const stayers = tripBookings.filter((b) => b.hotel_name === h);
+        const stayers = hotelBookings.filter((b) => b.hotel_name === h);
         return (
           <div key={h} className="hotel-group card">
             <div className="hotel-group-header">
@@ -542,6 +580,28 @@ export default function TripHubPage() {
           </div>
         );
       })}
+
+      {noHotelBookings.length > 0 && (
+        <div className="hotel-group card" style={{ borderStyle: "dashed" }}>
+          <div className="hotel-group-header">
+            <span className="hotel-name">No hotel needed</span>
+            <span className="hotel-count">
+              driving back or staying nearby
+            </span>
+          </div>
+          <div className="chip-row">
+            {noHotelBookings.map((b) => {
+              const p = ROSTER.find((r) => r.name === b.player_name);
+              return (
+                <span key={b.id} className="player-chip">
+                  <span className="num">#{p?.number ?? "–"}</span>
+                  {b.player_name}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {unbooked.length > 0 && (
         <div className="hotel-group card" style={{ borderStyle: "dashed" }}>

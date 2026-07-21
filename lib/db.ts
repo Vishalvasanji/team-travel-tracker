@@ -36,6 +36,7 @@ export async function db(): Promise<Client> {
           hotel_name TEXT NOT NULL,
           notes TEXT NOT NULL DEFAULT '',
           confirmation_number TEXT NOT NULL DEFAULT '',
+          no_hotel INTEGER NOT NULL DEFAULT 0,
           created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
           updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
           UNIQUE (trip_id, player_name)
@@ -47,6 +48,13 @@ export async function db(): Promise<Client> {
         );
       } catch {
         // Column already exists on databases created before this migration.
+      }
+      try {
+        await c.execute(
+          "ALTER TABLE hotel_bookings ADD COLUMN no_hotel INTEGER NOT NULL DEFAULT 0"
+        );
+      } catch {
+        // Column already exists.
       }
       await c.execute(`
         CREATE TABLE IF NOT EXISTS trip_links (

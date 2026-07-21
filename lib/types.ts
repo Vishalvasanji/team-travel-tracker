@@ -54,6 +54,8 @@ export interface Booking {
   trip_id: string;
   player_name: string;
   hotel_name: string;
+  // 1 = family opted out of a hotel (driving back / staying with family).
+  no_hotel: number;
   // Present only on the requesting family's own bookings.
   confirmation_number?: string;
   created_at: string;
