@@ -76,7 +76,10 @@ export function parseIcsEvents(ics: string): TeamEvent[] {
       title,
       type,
       canceled,
-      away: location !== "" && !location.includes(HOME_CITY),
+      // Away venues in this feed always carry a full "City, ST" address.
+      // Bare field names ("Burbank field 2") and placeholders ("TBD") are
+      // home-side entries, not trips.
+      away: state !== "" && !location.includes(HOME_CITY),
       allDay: !hh,
       date: `${y}-${mo}-${d}`,
       time: hh ? `${hh}:${mm}` : null,
